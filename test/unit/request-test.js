@@ -1,4 +1,5 @@
-import should from 'should';
+import * as chai from 'chai';
+chai.should();
 import sinon from 'sinon';
 import nock from 'nock';
 import request from '../../lib/request.js';
@@ -28,7 +29,7 @@ describe('request', () => {
 		};
 
 		return request.get({url, options}).then(() => {
-			scope.isDone().should.be.eql(true);
+			scope.isDone().should.eql(true);
 		});
 	});
 
@@ -42,7 +43,7 @@ describe('request', () => {
 			.reply(200);
 
 		return request.get({url, referer}).then(() => {
-			scope.isDone().should.be.eql(true);
+			scope.isDone().should.eql(true);
 		});
 	});
 
@@ -52,11 +53,23 @@ describe('request', () => {
 		let handlerStub = sinon.stub().resolves('');
 
 		return request.get({url, afterResponse: handlerStub}).then(() => {
-			scope.isDone().should.be.eql(true);
-			should(handlerStub.calledOnce).be.eql(true);
+			scope.isDone().should.eql(true);
+			handlerStub.calledOnce.should.eql(true);
 			const afterResponseArgs = handlerStub.getCall(0).args[0];
-			should(afterResponseArgs.response.body).be.eql('TEST BODY');
-			should(afterResponseArgs.response.headers).be.eql({});
+			afterResponseArgs.response.body.should.eql('TEST BODY');
+			chai.expect(afterResponseArgs.response.headers).to.eql({});
+		});
+	});
+
+	it('should pass response body to afterResponse as Buffer', () => {
+		const url = 'http://example.com';
+		nock(url).get('/').reply(200, 'TEST BODY');
+		const handlerStub = sinon.stub().resolves('');
+
+		return request.get({url, options: {responseType: 'buffer'}, afterResponse: handlerStub}).then(() => {
+			const { response } = handlerStub.getCall(0).args[0];
+			Buffer.isBuffer(response.body).should.eql(true);
+			response.body.toString().should.eql('TEST BODY');
 		});
 	});
 
@@ -66,12 +79,14 @@ describe('request', () => {
 			nock(url).get('/').reply(200, 'TEST BODY');
 			const handlerStub = sinon.stub().resolves({
 				body: 'a',
-				metadata: 'b'
+				metadata: 'b',
+				encoding: 'utf8'
 			});
 
 			return request.get({url, afterResponse: handlerStub}).then((data) => {
-				should(data.body).be.eql('a');
-				should(data.metadata).be.eql('b');
+				data.body.should.eql('a');
+				data.metadata.should.eql('b');
+				data.encoding.should.eql('utf8');
 			});
 		});
 
@@ -83,8 +98,9 @@ describe('request', () => {
 			});
 
 			return request.get({url, afterResponse: handlerStub}).then((data) => {
-				should(data.body).be.eql('a');
-				should(data.metadata).be.eql(null);
+				data.body.should.eql('a');
+				(data.metadata === null).should.be.true;
+				data.encoding.should.eql('binary');
 			});
 		});
 
@@ -94,8 +110,8 @@ describe('request', () => {
 			const handlerStub = sinon.stub().resolves('test body');
 
 			return request.get({url, afterResponse: handlerStub}).then((data) => {
-				should(data.body).be.eql('test body');
-				should(data.metadata).be.eql(null);
+				data.body.should.eql('test body');
+				(data.metadata === null).should.be.true;
 			});
 		});
 
@@ -105,10 +121,10 @@ describe('request', () => {
 			const handlerStub = sinon.stub().resolves(['1', '2']);
 
 			return request.get({url, afterResponse: handlerStub}).then(() => {
-				should(true).be.eql(false);
+				true.should.eql(false);
 			}).catch((e) => {
-				should(e).be.instanceOf(Error);
-				should(e.message).match(/Wrong response handler result. Expected string or object, but received/);
+				e.should.be.instanceOf(Error);
+				e.message.should.match(/Wrong response handler result. Expected string or object, but received/);
 			});
 		});
 	});
@@ -120,10 +136,13 @@ describe('request', () => {
 		});
 
 		return request.get({url}).then((data) => {
-			data.should.have.properties(['url', 'body', 'mimeType']);
-			data.url.should.be.eql('http://www.google.com/');
-			data.body.should.be.eql('Hello from Google!');
-			data.mimeType.should.be.eql('text/html');
+			data.should.have.property('url');
+			data.should.have.property('body');
+			data.should.have.property('mimeType');
+			data.url.should.eql('http://www.google.com/');
+			data.body.should.eql('Hello from Google!');
+			data.mimeType.should.eql('text/html');
+			data.encoding.should.eql('utf8');
 		});
 	});
 
@@ -132,10 +151,162 @@ describe('request', () => {
 		nock(url).get('/').reply(200, 'Hello from Google!', {});
 
 		return request.get({url}).then((data) => {
-			data.should.have.properties(['url', 'body', 'mimeType']);
-			data.url.should.be.eql('http://www.google.com/');
-			data.body.should.be.eql('Hello from Google!');
-			should(data.mimeType).be.eql(null);
+			data.should.include.all.keys(['url', 'body', 'mimeType', 'encoding']);
+			data.url.should.eql('http://www.google.com/');
+			data.body.should.eql('Hello from Google!');
+			data.encoding.should.eql('binary');
+			data.should.have.property('mimeType', null);
 		});
+	});
+});
+
+describe('get encoding', () => {
+	it('should return binary by default', () => {
+		const result = request.getEncoding(null);
+
+		result.should.eql('binary');
+	});
+
+	it('should return binary when no content-type header supplies', () => {
+		const result = request.getEncoding({
+			headers: {}
+		});
+
+		result.should.eql('binary');
+	});
+
+	it('should return binary when content type header doesn\'t include utf-8', () => {
+		const result = request.getEncoding({
+			headers: {}
+		});
+
+		result.should.eql('binary');
+	});
+
+	it('should return binary when content type header doesn\'t include utf-8', () => {
+		const result = request.getEncoding({
+			headers: {
+				'content-type': 'text/html'
+			}
+		});
+
+		result.should.eql('binary');
+	});
+
+	it('should return utf8 when content type includes utf-8', () => {
+		const result = request.getEncoding({
+			headers: {
+				'content-type': 'text/html; charset=utf-8'
+			}
+		});
+
+		result.should.eql('utf8');
+	});
+
+	it('should return utf8 response object includes it', () => {
+		const result = request.getEncoding({
+			encoding: 'utf8'
+		});
+
+		result.should.eql('utf8');
+	});
+});
+
+describe('transformResult', () => {
+	it('should throw with weird shaped response', () => {
+		try {
+			request.transformResult([1,2,3]);
+
+			// We shouldn't get here.
+			true.should.eql(false);
+		} catch (e) {
+			e.should.be.instanceOf(Error);
+			e.message.should.eql('Wrong response handler result. Expected string or object, but received array');
+		}
+	});
+
+	it('should pass through error', () => {
+		try {
+			request.transformResult(new Error('Oh no'));
+
+			// We shouldn't get here.
+			true.should.eql(false);
+		} catch (e) {
+			e.should.be.instanceOf(Error);
+			e.message.should.eql('Oh no');
+		}
+	});
+
+	it('should throw with boolean input', () => {
+		try {
+			request.transformResult(true);
+
+			// We shouldn't get here.
+			true.should.eql(false);
+		} catch (e) {
+			e.should.be.instanceOf(Error);
+			e.message.should.eql('Wrong response handler result. Expected string or object, but received boolean');
+		}
+	});
+
+	it('should handle object', () => {
+		const result = request.transformResult({
+			body: 'SOME BODY',
+			encoding: 'utf8',
+			metadata: { foo: 'bar' }
+		});
+
+		result.should.have.property('body', 'SOME BODY');
+		result.should.have.property('encoding', 'utf8');
+		result.should.have.property('metadata').that.eql({ foo: 'bar' });
+	});
+
+	it('should handle object with empty body string', () => {
+		const result = request.transformResult({
+			body: '',
+			encoding: 'utf8',
+		});
+
+		result.should.have.property('body', '');
+		result.should.have.property('encoding', 'utf8');
+		result.should.have.property('metadata', null);
+	});
+
+	it('should handle object with defaults and buffer body', () => {
+		const result = request.transformResult({
+			body: Buffer.from('SOME BODY'),
+		});
+
+		result.should.have.property('body', 'SOME BODY');
+		result.should.have.property('encoding', 'binary');
+		result.should.have.property('metadata', null);
+	});
+
+	it('should handle object with Uint8Array body', () => {
+		const result = request.transformResult({
+			body: new TextEncoder().encode('SOME BODY'),
+		});
+
+		result.should.have.property('body', 'SOME BODY');
+		result.should.have.property('encoding', 'binary');
+		result.should.have.property('metadata', null);
+	});
+
+	it('should handle raw string input', () => {
+		const result = request.transformResult('SOME BODY');
+
+		result.should.have.property('body', 'SOME BODY');
+		result.should.have.property('encoding', 'binary');
+		result.should.have.property('metadata', null);
+	});
+
+	it('should handle null input', () => {
+		const result = request.transformResult(null);
+		(result === null).should.be.true;
+	});
+
+	it('should handle undefined input', () => {
+		const result = request.transformResult(undefined);
+		(result === null).should.be.true;
 	});
 });

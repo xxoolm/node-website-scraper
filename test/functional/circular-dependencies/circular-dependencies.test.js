@@ -1,7 +1,9 @@
-import 'should';
+import * as chai from 'chai';
+chai.should();
+
 import '../../utils/assertions.js';
 import nock from 'nock';
-import fs from 'fs-extra';
+import fs from 'fs';
 import scrape from 'website-scraper';
 
 const testDirname = './test/functional/circular-dependencies/.tmp';
@@ -17,7 +19,7 @@ describe('Functional circular dependencies', function() {
 	afterEach(function() {
 		nock.cleanAll();
 		nock.enableNetConnect();
-		fs.removeSync(testDirname);
+		fs.rmSync(testDirname, {recursive: true, force: true});
 	});
 
 	it('should correctly load files with circular dependency', function() {
@@ -34,10 +36,10 @@ describe('Functional circular dependencies', function() {
 			]
 		};
 
-		nock('http://example.com/').get('/index.html').replyWithFile(200, mockDirname + '/index.html');
-		nock('http://example.com/').get('/about.html').replyWithFile(200, mockDirname + '/about.html');
-		nock('http://example.com/').get('/style.css').replyWithFile(200, mockDirname + '/style.css');
-		nock('http://example.com/').get('/style2.css').replyWithFile(200, mockDirname + '/style2.css');
+		nock('http://example.com/').get('/index.html').replyWithFile(200, mockDirname + '/index.html', {'content-type': 'text/html'});
+		nock('http://example.com/').get('/about.html').replyWithFile(200, mockDirname + '/about.html', {'content-type': 'text/html'});
+		nock('http://example.com/').get('/style.css').replyWithFile(200, mockDirname + '/style.css', {'content-type': 'text/css'});
+		nock('http://example.com/').get('/style2.css').replyWithFile(200, mockDirname + '/style2.css', {'content-type': 'text/css'});
 
 		return scrape(options).then(function() {
 			fs.existsSync(testDirname + '/index.html').should.be.eql(true);

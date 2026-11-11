@@ -1,30 +1,27 @@
-# ⚠️ Beware: this documentation is for next major version 5. Most probably you need current version [4.x documentation](https://github.com/website-scraper/node-website-scraper/blob/4.x/README.md)
-
 [![Version](https://img.shields.io/npm/v/website-scraper.svg?style=flat)](https://www.npmjs.org/package/website-scraper)
 [![Downloads](https://img.shields.io/npm/dm/website-scraper.svg?style=flat)](https://www.npmjs.org/package/website-scraper)
 [![Node.js CI](https://github.com/website-scraper/node-website-scraper/actions/workflows/node.js.yml/badge.svg)](https://github.com/website-scraper/node-website-scraper)
-[![Build status](https://ci.appveyor.com/api/projects/status/s7jxui1ngxlbgiav/branch/master?svg=true)](https://ci.appveyor.com/project/s0ph1e/node-website-scraper/branch/master)
-[![Test Coverage](https://codeclimate.com/github/website-scraper/node-website-scraper/badges/coverage.svg)](https://codeclimate.com/github/website-scraper/node-website-scraper/coverage)
-[![Dependency Status](https://david-dm.org/website-scraper/node-website-scraper.svg?style=flat)](https://david-dm.org/website-scraper/node-website-scraper)
-[![Gitter](https://badges.gitter.im/website-scraper/node-website-scraper.svg)](https://gitter.im/website-scraper/node-website-scraper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Code Coverage](https://qlty.sh/gh/website-scraper/projects/node-website-scraper/coverage.svg)](https://qlty.sh/gh/website-scraper/projects/node-website-scraper)
+[![Coverage Status](https://coveralls.io/repos/github/website-scraper/node-website-scraper/badge.svg?branch=master)](https://coveralls.io/github/website-scraper/node-website-scraper?branch=master)
 
 
 # website-scraper
 
-[Options](#usage) | [Plugins](#plugins) | [Log and debug](#log-and-debug) | [Frequently Asked Questions](https://github.com/website-scraper/node-website-scraper/blob/master/docs/FAQ.md) | [Contributing](https://github.com/website-scraper/node-website-scraper/blob/master/CONTRIBUTING.md) | [Code of Conduct](https://github.com/website-scraper/node-website-scraper/blob/master/CODE_OF_CONDUCT.md)
+[Options](#usage) | [Plugins](#plugins) | [Security](#security) | [Log and debug](#log-and-debug) | [Frequently Asked Questions](https://github.com/website-scraper/node-website-scraper/blob/master/docs/FAQ.md) | [Contributing](https://github.com/website-scraper/node-website-scraper/blob/master/CONTRIBUTING.md) | [Code of Conduct](https://github.com/website-scraper/node-website-scraper/blob/master/CODE_OF_CONDUCT.md)
 
+Download the website to the local directory (including all css, images, js, etc.)
 
-Download website to local directory (including all css, images, js, etc.)
+**Note:** by default dynamic websites (where content is loaded by js) may not be saved correctly because `website-scraper` doesn't execute js, it only parses http responses for html and css files. If you need to download a dynamic website take a look at [website-scraper-puppeteer](https://github.com/website-scraper/website-scraper-puppeteer).
 
-Try it in [demo app](https://scraper.nepochataya.pp.ua/) ([source](https://github.com/website-scraper/demo))
+## Sponsors
+Maintenance of this project is made possible by all the [contributors](https://github.com/website-scraper/node-website-scraper/graphs/contributors) and [sponsors](https://github.com/sponsors/s0ph1e).
+If you'd like to sponsor this project and have your avatar or company logo appear below [click here](https://github.com/sponsors/s0ph1e). 💖
 
-**Note:** by default dynamic websites (where content is loaded by js) may be saved not correctly because `website-scraper` doesn't execute js, it only parses http responses for html and css files. If you need to download dynamic website take a look on [website-scraper-puppeteer](https://github.com/website-scraper/website-scraper-puppeteer) or [website-scraper-phantom](https://github.com/website-scraper/node-website-scraper-phantom).
-
-This module is an Open Source Software maintained by one developer in free time. If you want to thank the author of this module you can use [GitHub Sponsors](https://github.com/sponsors/s0ph1e) or [Patreon](https://www.patreon.com/s0ph1e).
+<!-- sponsors --><a href="https://github.com/aivus"><img src="https:&#x2F;&#x2F;github.com&#x2F;aivus.png" width="60px" alt="User avatar: Illia Antypenko" /></a><a href="https://github.com/swissspidy"><img src="https:&#x2F;&#x2F;github.com&#x2F;swissspidy.png" width="60px" alt="User avatar: Pascal Birchler" /></a><a href="https://github.com/itscarlosrufo"><img src="https:&#x2F;&#x2F;github.com&#x2F;itscarlosrufo.png" width="60px" alt="User avatar: Carlos Rufo" /></a><a href="https://github.com/francescamarano"><img src="https:&#x2F;&#x2F;github.com&#x2F;francescamarano.png" width="60px" alt="User avatar: Francesca Marano" /></a><a href="https://github.com/github"><img src="https:&#x2F;&#x2F;github.com&#x2F;github.png" width="60px" alt="User avatar: GitHub" /></a><a href="https://github.com/Belrestro"><img src="https:&#x2F;&#x2F;github.com&#x2F;Belrestro.png" width="60px" alt="User avatar: Andrew Vorobiov" /></a><a href="https://github.com/Effiezhu"><img src="https:&#x2F;&#x2F;github.com&#x2F;Effiezhu.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/madebyyusuf"><img src="https:&#x2F;&#x2F;github.com&#x2F;madebyyusuf.png" width="60px" alt="User avatar: Yusuf" /></a><!-- sponsors -->
 
 ## Requirements
-* nodejs version >= 12.17.0
-* website-scraper v5 is pure ESM (it doesn't work with CommonJS), [read more in release v5.0.0 docs](https://github.com/website-scraper/node-website-scraper/releases/tag/v5.0.0)
+* nodejs version >= 22.12.0
+* website-scraper since v5 is pure ESM (it doesn't work with CommonJS), [read more in release v5.0.0 docs](https://github.com/website-scraper/node-website-scraper/releases/tag/v5.0.0)
 
 ## Installation
 ```
@@ -163,6 +160,7 @@ Boolean, whether urls should be 'prettified', by having the `defaultFilename` re
 
 #### ignoreErrors
 Boolean, if `true` scraper will continue downloading resources after error occurred, if `false` - scraper will finish process and return error. Defaults to `false`.
+Errors thrown by plugin actions while handling a resource (including [onResourceSaved](#onresourcesaved)) are treated the same way.
 
 #### urlFilter
 Function which is called for each url to check whether it should be scraped. Defaults to `null` - no url filter will be applied.
@@ -176,6 +174,7 @@ scrape({
   directory: '/path/to/save'
 });
 ```
+`urlFilter` is called for every url found in downloaded content and, when such a resource is redirected, for the url it was redirected to. It is not called for the urls passed in [urls](#urls), validate those before calling `scrape`. See [Security](#security) for how to restrict destinations for all requests.
 
 #### filenameGenerator
 String (name of the bundled filenameGenerator). Filename generator determines path in file system where the resource will be saved.
@@ -224,22 +223,17 @@ Plugins allow to extend scraper behaviour
     * [getReference](#getreference)
 
 ##### Built-in plugins
-Scraper has built-in plugins which are used by default if not overwritten with custom plugins. You can find them in [lib/plugins](https://github.com/website-scraper/node-website-scraper/tree/master/lib/plugins) directory or get them using 
-```javascript
-import * as plugins from 'website-scraper/plugins';
-```
+Scraper has built-in plugins which are used by default if not overwritten with custom plugins. You can find them in [lib/plugins](lib/plugins) directory. These plugins are intended for internal use but can be copied if the behaviour of the plugins needs to be extended / changed.
 
 ##### Existing plugins
 * [website-scraper-puppeteer](https://github.com/website-scraper/website-scraper-puppeteer) - download dynamic (rendered with js) websites using puppeteer
-* [website-scraper-phantom](https://github.com/website-scraper/node-website-scraper-phantom) - download dynamic (rendered with js) websites using phantomJS
 * [website-scraper-existing-directory](https://github.com/website-scraper/website-scraper-existing-directory) - save files to existing directory
 
 ##### Create plugin
-**Note:** before creating new plugins consider using/extending/contributing to [existing plugins](#existing-plugins).
 
 Plugin is object with `.apply` method, can be used to change scraper behavior.
 
-`.apply` method takes one argument - `registerAction` function which allows to add handlers for different actions. Action handlers are functions that are called by scraper on different stages of downloading website. For example `generateFilename` is called to generate filename for resource based on its url, `onResourceError` is called when error occured during requesting/handling/saving resource.
+`.apply` method takes one argument - `registerAction` function which allows to add handlers for different actions. Action handlers are functions that are called by scraper on different stages of downloading website. For example `generateFilename` is called to generate filename for resource based on its url, `onResourceError` is called when error occurred during requesting/handling/saving resource.
 
 You can add multiple plugins which register multiple actions. Plugins will be applied in order they were added to options.
 All actions should be regular or async functions. Scraper will call actions of specific type in order they were added and use result (if supported by action type) from last action call.
@@ -323,26 +317,28 @@ registerAction('beforeRequest', async ({resource, requestOptions}) => {
 ```
 
 ##### afterResponse
-Action afterResponse is called after each response, allows to customize resource or reject its saving.
+Action afterResponse is called after each response, it allows to customize resource or reject its saving.
 
 Parameters - object which includes:
 * response - response object from http module [got](https://github.com/sindresorhus/got#response)
 
-Should return resolved `Promise` if resource should be saved or rejected with Error `Promise` if it should be skipped.
-Promise should be resolved with:
-* `string` which contains response body
-* or object with properties `body` (response body, string) and `metadata` - everything you want to save for this resource (like headers, original text, timestamps, etc.), scraper will not use this field at all, it is only for result.
+Return resolved `Promise` with:
+  * object if the resource should be saved, object should contain next properties:
+    * `body` (string, required)
+    * `encoding` (`binary` or `utf8`) is used to save the file, binary is used by default.
+    * `metadata` (object) - everything you want to save for this resource (like headers, original text, timestamps, etc.), scraper will not use this field at all, it is only for the result
+  * or null if the resource should be skipped
 
-If multiple actions `afterResponse` added - scraper will use result from last one.
+If multiple actions `afterResponse` are added - the scraper will use the result from the last one.
 ```javascript
-// Do not save resources which responded with 404 not found status code
+// Do not save resources that responded with 404 not found status code
 registerAction('afterResponse', ({response}) => {
 	if (response.statusCode === 404) {
-			return null;
+		return null;
 	} else {
-		// if you don't need metadata - you can just return Promise.resolve(response.body)
 		return {
 			body: response.body,
+			encoding: 'utf8',
 			metadata: {
 				headers: response.headers,
 				someOtherData: [ 1, 2, 3 ]
@@ -353,24 +349,24 @@ registerAction('afterResponse', ({response}) => {
 ```
 
 ##### onResourceSaved
-Action onResourceSaved is called each time after resource is saved (to file system or other storage with 'saveResource' action).
+Action onResourceSaved is called each time after a resource is saved (to file system or other storage with 'saveResource' action).
 
-Parameters- object which includes:
+Parameters - object which includes:
 * resource - [Resource](https://github.com/website-scraper/node-website-scraper/blob/master/lib/resource.js) object
 
-Scraper ignores result returned from this action and does not wait until it is resolved
+Scraper ignores the result returned from this action. It doesn't wait for the action before saving other resources, but it waits for all pending onResourceSaved and onResourceError actions before running afterFinish and resolving `scrape()`. If the action throws or rejects, it is handled like any other resource error: [onResourceError](#onresourceerror) is called for the resource, and if [ignoreErrors](#ignoreerrors) is `false` `scrape()` is rejected with this error. Since scraper doesn't wait for this action, the rejection happens after all resources are downloaded and pending actions are finished, not immediately.
 ```javascript
 registerAction('onResourceSaved', ({resource}) => console.log(`Resource ${resource.url} saved!`));
 ```
 
 ##### onResourceError
-Action onResourceError is called each time when resource's downloading/handling/saving to was failed
+Action onResourceError is called each time a resource's downloading/handling/saving fails
 
-Parameters- object which includes:
+Parameters - object which includes:
 * resource - [Resource](https://github.com/website-scraper/node-website-scraper/blob/master/lib/resource.js) object
 * error - Error object
 
-Scraper ignores result returned from this action and does not wait until it is resolved
+Scraper ignores the result returned from this action. Like onResourceSaved, `scrape()` waits for pending onResourceError actions before running afterFinish. If the action throws or rejects, the error is only logged to the `website-scraper:warn` logger (see [Log and debug](#log-and-debug)).
 ```javascript
 registerAction('onResourceError', ({resource, error}) => console.log(`Resource ${resource.url} has error ${error}`));
 ```
@@ -390,7 +386,7 @@ If multiple actions `generateFilename` added - scraper will use result from last
 Default plugins which generate filenames: [byType](https://github.com/website-scraper/node-website-scraper/blob/master/lib/plugins/generate-filenamy-by-type-plugin.js), [bySiteStructure](https://github.com/website-scraper/node-website-scraper/blob/master/lib/plugins/generate-filenamy-by-site-structure-plugin.js)
 ```javascript
 // Generate random filename
-const crypto = require('crypto');
+import crypto from 'crypto';
 registerAction('generateFilename', ({resource}) => {
   return {filename: crypto.randomBytes(20).toString('hex')};
 });
@@ -434,6 +430,13 @@ registerAction('saveResource', async ({resource}) => {
 });
 ```
 
+## Security
+website-scraper requests the urls passed in [urls](#urls) and, by default, every resource referenced by the downloaded content (images, scripts, stylesheets, iframes, media, ...), following redirects. It does not check whether a destination is a public, private, loopback or link-local address, because mirroring intranet, staging or localhost sites is a legitimate use.
+
+If your application scrapes urls supplied by untrusted users, treat the supplied urls and every url found in the downloaded content as untrusted. Without restrictions, a page you are asked to download can make the scraper request internal services and save their responses to the output directory (server-side request forgery). Use [urlFilter](#urlfilter) to restrict discovered urls and a [beforeRequest](#beforerequest) action to validate every request, including redirects and resolved addresses. A complete example is in [SECURITY.md](https://github.com/website-scraper/node-website-scraper/blob/master/SECURITY.md).
+
+Please report security issues privately through [GitHub security advisories](https://github.com/website-scraper/node-website-scraper/security/advisories/new).
+
 ## result
 Array of [Resource](https://github.com/website-scraper/node-website-scraper/blob/master/lib/resource.js) objects containing:
 - `url`: url of loaded page
@@ -442,7 +445,7 @@ Array of [Resource](https://github.com/website-scraper/node-website-scraper/blob
 
 ## Log and debug
 This module uses [debug](https://github.com/visionmedia/debug) to log events. To enable logs you should use environment variable `DEBUG`.
-Next command will log everything from website-scraper
+The next command will log everything from website-scraper
 ```bash
 export DEBUG=website-scraper*; node app.js
 ```

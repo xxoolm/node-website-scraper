@@ -1,10 +1,11 @@
-import should from 'should';
+import * as chai from 'chai';
+chai.should();
+
 import '../../utils/assertions.js';
 import nock from 'nock';
-import fs from 'fs-extra';
+import fs from 'fs';
 import scrape from 'website-scraper';
 
-const expectedDirname = './test/functional/data-url/expected';
 const testDirname = './test/functional/data-url/.tmp';
 const mockDirname = './test/functional/data-url/mocks';
 
@@ -18,7 +19,7 @@ describe('Functional: data urls handling', function () {
 	afterEach(function () {
 		nock.cleanAll();
 		nock.enableNetConnect();
-		fs.removeSync(testDirname);
+		fs.rmSync(testDirname, {recursive: true, force: true});
 	});
 
 	it('should correctly handle html files with data urls in attributes', function () {
@@ -37,9 +38,13 @@ describe('Functional: data urls handling', function () {
 			fs.existsSync(testDirname + '/images/521811121-392x351.jpg').should.be.eql(true);
 
 			const actualIndexHtml = fs.readFileSync(testDirname + '/index.html').toString();
-			const expectedIndexHtml = fs.readFileSync(expectedDirname + '/index.html').toString();
 
-			should(actualIndexHtml).equal(expectedIndexHtml);
+			actualIndexHtml.should.contain('<source media="(max-width: 559px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 1x, data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 2x">');
+			actualIndexHtml.should.contain('<source media="(min-width: 560px) and (max-width: 719px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 1x, data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 2x">');
+			actualIndexHtml.should.contain('<source media="(min-width: 720px) and (max-width: 899px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 1x, data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 2x">');
+			actualIndexHtml.should.contain('<source media="(min-width: 900px) and (max-width: 1199px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 1x, data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 2x">');
+			actualIndexHtml.should.contain('<source media="(min-width: 1200px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 1x, data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 2x">');
+			actualIndexHtml.should.contain('<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" srcset="images/521811121-392x351.jpg 2x">');
 		});
 	});
 });

@@ -10,6 +10,8 @@ Thank you for your support ❤️
 ### Backers via Patreon
 * The Rubyist
 
-### Backers via GitHub Sponspors
+### Backers via GitHub Sponsors
 * swcarlosrj 
 * francescamarano
+* github
+* Belrestro

@@ -1,7 +1,8 @@
-import should from 'should';
+import * as chai from 'chai';
+chai.should();
 import '../../utils/assertions.js';
 import nock from 'nock';
-import fs from 'fs-extra';
+import fs from 'fs';
 import scrape from 'website-scraper';
 
 const testDirname = './test/functional/base/.tmp2';
@@ -16,11 +17,11 @@ describe('Functional: check it works', function() {
 	afterEach(function () {
 		nock.cleanAll();
 		nock.enableNetConnect();
-		fs.removeSync(testDirname);
+		fs.rmSync(testDirname, {recursive: true, force: true});
 	});
 
 	it('should work with promise', () => {
-		nock('http://example.com/').get('/').reply(200, 'TEST PROMISES');
+		nock('http://example.com/').get('/').reply(200, '<html><head></head><body>TEST PROMISES</body></html>');
 
 		const options = {
 			urls: [ 'http://example.com/' ],
@@ -28,9 +29,9 @@ describe('Functional: check it works', function() {
 		};
 
 		return scrape(options).then((result) => {
-			should(result[0].url).be.eql('http://example.com/');
-			should(result[0].filename).be.eql('index.html');
-			should(result[0].text).be.eql('TEST PROMISES');
+			result[0].url.should.be.eql('http://example.com/');
+			result[0].filename.should.be.eql('index.html');
+			result[0].text.should.be.eql('<html><head></head><body>TEST PROMISES</body></html>');
 		});
 	});
 });

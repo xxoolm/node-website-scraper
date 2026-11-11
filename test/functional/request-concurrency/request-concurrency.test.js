@@ -1,7 +1,9 @@
-import 'should';
+import * as chai from 'chai';
+chai.should();
+
 import '../../utils/assertions.js';
 import nock from 'nock';
-import fs from 'fs-extra';
+import fs from 'fs';
 import scrape from 'website-scraper';
 
 const testDirname = './test/functional/request-concurrency/.tmp';
@@ -57,10 +59,10 @@ describe('Functional concurrent requests', function() {
 	afterEach(function () {
 		nock.cleanAll();
 		nock.enableNetConnect();
-		fs.removeSync(testDirname);
+		fs.rmSync(testDirname, {recursive: true, force: true});
 	});
 
 	it('should have maximum concurrent requests == requestConcurrency option', () => {
-		maxConcurrentRequests.should.be.belowOrEqual(1);
+		maxConcurrentRequests.should.be.at.most(1);
 	});
 });

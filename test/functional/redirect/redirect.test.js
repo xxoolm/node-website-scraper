@@ -1,7 +1,9 @@
-import 'should';
+import * as chai from 'chai';
+chai.should();
+
 import '../../utils/assertions.js';
 import nock from 'nock';
-import fs from 'fs-extra';
+import fs from 'fs';
 import sinon from 'sinon';
 import scrape from 'website-scraper';
 import Scraper from '../../../lib/scraper.js';
@@ -19,20 +21,20 @@ describe('Functional redirects', function() {
 	afterEach(function() {
 		nock.cleanAll();
 		nock.enableNetConnect();
-		fs.removeSync(testDirname);
+		fs.rmSync(testDirname, {recursive: true, force: true});
 	});
 
 	it('should follow redirects and save resource once if it has different urls', function() {
-		nock('http://example.com/').get('/').replyWithFile(200, mockDirname + '/index.html');
+		nock('http://example.com/').get('/').replyWithFile(200, mockDirname + '/index.html', {'content-type': 'text/html'});
 		// true page - ok
-		nock('http://example.com/').get('/true-page.html').reply(200, 'true page 1');
+		nock('http://example.com/').get('/true-page.html').reply(200, '<html><head></head><body>true page 1</body></html>', {'content-type': 'text/html'});
 		// duplicating page - redirect to true page
 		nock('http://example.com/').get('/duplicating-page.html').reply(302, '', {'Location': 'http://example.com/true-page.html'});
 		nock('http://example.com/').get('/true-page.html').reply(200, 'true page 2');
 		// duplicating site - redirect to duplicating page, then redirect to true page
 		nock('http://duplicating.another-site.com/').get('/').reply(302, '', {'Location': 'http://example.com/duplicating-page.html'});
 		nock('http://example.com/').get('/duplicating-page.html').reply(302, '', {'Location': 'http://example.com/true-page.html'});
-		nock('http://example.com/').get('/true-page.html').reply(200, 'true page 3');
+		nock('http://example.com/').get('/true-page.html').reply(200, 'true page 3', {'content-type': 'text/html'});
 
 		const options = {
 			urls: [ 'http://example.com/' ],
@@ -54,13 +56,46 @@ describe('Functional redirects', function() {
 			fs.existsSync(testDirname + '/true-page.html').should.be.eql(true);
 
 			// should update all urls to true-page.html
-			fs.readFileSync(testDirname + '/index.html').toString().should.containEql('<a href="true-page.html">1</a>');
-			fs.readFileSync(testDirname + '/index.html').toString().should.containEql('<a href="true-page.html">2</a>');
-			fs.readFileSync(testDirname + '/index.html').toString().should.containEql('<a href="true-page.html">3</a>');
+			fs.readFileSync(testDirname + '/index.html').toString().should.contain('<a href="true-page.html">1</a>');
+			fs.readFileSync(testDirname + '/index.html').toString().should.contain('<a href="true-page.html">2</a>');
+			fs.readFileSync(testDirname + '/index.html').toString().should.contain('<a href="true-page.html">3</a>');
 
 			// true-page.html should have body from 1st response
-			fs.readFileSync(testDirname + '/true-page.html').toString().should.be.eql('true page 1');
+			fs.readFileSync(testDirname + '/true-page.html').toString().should.be.eql('<html><head></head><body>true page 1</body></html>');
 		});
+	});
+
+	it('should not save a resource redirected to a url rejected by urlFilter', async () => {
+		nock('http://example.com/').get('/').reply(200,
+			'<html><body><a href="/go.html">go</a><a href="/moved.html">moved</a></body></html>',
+			{'content-type': 'text/html'});
+		// passes urlFilter, redirects to a host which does not
+		nock('http://example.com/').get('/go.html').reply(302, '', {'Location': 'http://internal.example/secret.html'});
+		const internal = nock('http://internal.example/').get('/secret.html').reply(200, 'INTERNAL-SECRET', {'content-type': 'text/html'});
+		// passes urlFilter, redirects within the allowed host
+		nock('http://example.com/').get('/moved.html').reply(302, '', {'Location': 'http://example.com/new.html'});
+		nock('http://example.com/').get('/new.html').reply(200, 'new page', {'content-type': 'text/html'});
+
+		await scrape({
+			urls: [ 'http://example.com/' ],
+			directory: testDirname,
+			subdirectories: null,
+			recursive: true,
+			maxRecursiveDepth: 1,
+			sources: [],
+			urlFilter: (url) => new URL(url).hostname === 'example.com',
+		});
+
+		// the redirect is followed by the http client, but the response is dropped
+		internal.isDone().should.be.eql(true);
+		fs.existsSync(testDirname + '/new.html').should.be.eql(true);
+		fs.existsSync(testDirname + '/secret.html').should.be.eql(false);
+		for (const file of fs.readdirSync(testDirname, {recursive: true})) {
+			fs.readFileSync(`${testDirname}/${file}`).toString().should.not.contain('INTERNAL-SECRET');
+		}
+		// the filtered link is left untouched, as for any url rejected by urlFilter
+		fs.readFileSync(testDirname + '/index.html').toString().should.contain('<a href="/go.html">go</a>');
+		fs.readFileSync(testDirname + '/index.html').toString().should.contain('<a href="new.html">moved</a>');
 	});
 
 	it('should correctly handle relative source in redirected page', () => {
@@ -79,11 +114,11 @@ describe('Functional redirects', function() {
 			]
 		};
 
-		nock('http://example.com/').get('/').replyWithFile(200, mockDirname + '/relative-resources-index.html');
+		nock('http://example.com/').get('/').replyWithFile(200, mockDirname + '/relative-resources-index.html', {'content-type': 'text/html'});
 		nock('http://example.com/').get('/about').reply(301, '', {'Location': 'http://example.com/about/'});
 		nock('http://example.com/').get('/about/').replyWithFile(200, mockDirname + '/relative-resources-about.html', {'content-type': 'text/html'});
-		nock('http://example.com/').get('/style.css').reply(200, 'style.css');
-		nock('http://example.com/').get('/about/style.css').reply(200, 'about/style.css');
+		nock('http://example.com/').get('/style.css').reply(200, 'style.css', {'content-type': 'text/css'});
+		nock('http://example.com/').get('/about/style.css').reply(200, 'about/style.css', {'content-type': 'text/css'});
 
 		return scrape(options).then(function() {
 			fs.existsSync(testDirname + '/index.html').should.be.eql(true);
@@ -98,11 +133,11 @@ describe('Functional redirects', function() {
 			style1.should.be.eql('about/style.css');
 
 			const index = fs.readFileSync(testDirname + '/index.html').toString();
-			index.should.containEql('<link rel="stylesheet" type="text/css" href="css/style.css">');
+			index.should.contain('<link rel="stylesheet" type="text/css" href="css/style.css">');
 
 			const about = fs.readFileSync(testDirname + '/about.html').toString();
-			about.should.containEql('<link rel="stylesheet" type="text/css" href="css/style.css">');
-			about.should.containEql('<link rel="stylesheet" type="text/css" href="css/style_1.css">');
+			about.should.contain('<link rel="stylesheet" type="text/css" href="css/style.css">');
+			about.should.contain('<link rel="stylesheet" type="text/css" href="css/style_1.css">');
 		});
 	});
 });

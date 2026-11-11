@@ -1,17 +1,18 @@
-import 'should';
 import scrape from 'website-scraper';
-import fs from 'fs-extra';
-import _ from 'lodash';
+import fs from 'fs';
+import * as chai from 'chai';
 
 import { readFile } from 'fs/promises';
 const urls = JSON.parse(await readFile(new URL('./urls.json', import.meta.url)));
 const options = JSON.parse(await readFile(new URL('./options.json', import.meta.url)));
 
 const resultDirname = './test/e2e/results';
+chai.should();
 
 describe('E2E', function() {
 	before(function() {
-		fs.emptyDirSync(resultDirname);
+		fs.rmSync(resultDirname, {recursive: true, force: true});
+		fs.mkdirSync(resultDirname, {recursive: true});
 	});
 
 	after(function() {
@@ -21,24 +22,24 @@ describe('E2E', function() {
 	urls.forEach(function(url) {
 		describe(url, function() {
 			it('should be successfully scraped with byType filename generator', function() {
-				const scraperOptions = _.clone(options);
+				const scraperOptions = { ...options };
 				const hostname = new URL(url).hostname;
 				scraperOptions.directory = resultDirname + '/' + hostname + '-byType';
 				scraperOptions.urls = [ { url: url, filename: 'index.html' } ];
 				scraperOptions.filenameGenerator = 'byType';
 				return scrape(scraperOptions).then(function(result) {
-					result.should.be.ok();
+					result.should.be.ok;
 				});
 			});
 
 			it('should be successfully scraped with bySiteStructure filename generator', function() {
-				const scraperOptions = _.clone(options);
+				const scraperOptions = { ...options };
 				const hostname = new URL(url).hostname;
 				scraperOptions.directory = resultDirname + '/' + hostname + '-bySiteStructure';
 				scraperOptions.urls = [ { url: url } ];
 				scraperOptions.filenameGenerator = 'bySiteStructure';
 				return scrape(scraperOptions).then(function(result) {
-					result.should.be.ok();
+					result.should.be.ok;
 				});
 			});
 		});
